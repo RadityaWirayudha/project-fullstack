@@ -67,32 +67,35 @@ export default function Payments() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pengelolaan Pembayaran</h1>
-        <button
-          onClick={openCreate}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
-        >
-          + Catat Pembayaran
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Pengelolaan Pembayaran</h1>
+          <p className="text-sm text-slate-500 mt-1">Catat iuran kebersihan dan satpam</p>
+        </div>
+        <button onClick={openCreate} className="btn-primary">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Catat Pembayaran
         </button>
       </div>
 
-      <div className="rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+      <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="bg-slate-50">
             <tr>
-              <th className="px-4 py-3">Tanggal Bayar</th>
-              <th className="px-4 py-3">Rumah</th>
-              <th className="px-4 py-3">Penghuni</th>
-              <th className="px-4 py-3">Jenis Iuran</th>
-              <th className="px-4 py-3">Periode</th>
-              <th className="px-4 py-3 text-right">Total</th>
+              <th className="table-header">Tanggal Bayar</th>
+              <th className="table-header">Rumah</th>
+              <th className="table-header">Penghuni</th>
+              <th className="table-header">Jenis Iuran</th>
+              <th className="table-header">Periode</th>
+              <th className="table-header text-right">Total</th>
             </tr>
           </thead>
           <tbody>
             {payments.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Belum ada pembayaran</td></tr>
+              <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-400">Belum ada pembayaran</td></tr>
             )}
             {payments.map((p) => {
               const types = [...new Set(p.details.map((d) => d.fee_type))]
@@ -105,13 +108,17 @@ export default function Payments() {
                   : `${MONTH_NAMES[first.getMonth()]} ${first.getFullYear()} – ${MONTH_NAMES[last.getMonth()]} ${last.getFullYear()}`
                 : '-'
               return (
-                <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-3">{formatDate(p.payment_date)}</td>
-                  <td className="px-4 py-3 font-medium">{p.house?.house_number}</td>
-                  <td className="px-4 py-3">{p.resident?.full_name}</td>
-                  <td className="px-4 py-3 capitalize">{types.join(', ')}</td>
-                  <td className="px-4 py-3">{periodLabel}</td>
-                  <td className="px-4 py-3 text-right font-medium">{formatRupiah(p.total_amount)}</td>
+                <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/70 transition-colors">
+                  <td className="table-cell text-slate-600">{formatDate(p.payment_date)}</td>
+                  <td className="table-cell font-medium text-slate-800">{p.house?.house_number}</td>
+                  <td className="table-cell text-slate-600">{p.resident?.full_name}</td>
+                  <td className="table-cell">
+                    {types.map((t) => (
+                      <span key={t} className="badge-slate capitalize mr-1">{t}</span>
+                    ))}
+                  </td>
+                  <td className="table-cell text-slate-600">{periodLabel}</td>
+                  <td className="table-cell text-right font-semibold text-emerald-600">{formatRupiah(p.total_amount)}</td>
                 </tr>
               )
             })}
@@ -121,16 +128,16 @@ export default function Payments() {
 
       <Modal open={modalOpen} title="Catat Pembayaran Iuran" onClose={() => setModalOpen(false)}>
         {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">{error}</div>
+          <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Rumah</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Rumah</label>
             <select
               value={form.house_id}
               onChange={(e) => setForm({ ...form, house_id: e.target.value })}
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+              className="input-select"
             >
               <option value="">-- Pilih rumah --</option>
               {houses.map((h) => (
@@ -140,12 +147,17 @@ export default function Payments() {
               ))}
             </select>
             {selectedHouse && !activeResident && (
-              <p className="mt-1 text-xs text-rose-600">Rumah ini tidak memiliki penghuni aktif.</p>
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                Rumah ini tidak memiliki penghuni aktif.
+              </p>
             )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Jenis Iuran</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Jenis Iuran</label>
               <select
                 value={form.fee_type}
                 onChange={(e) => {
@@ -156,18 +168,18 @@ export default function Payments() {
                     payment_mode: fee_type === 'satpam' ? 'bulanan' : form.payment_mode,
                   })
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+                className="input-select"
               >
                 <option value="kebersihan">Kebersihan (Rp15.000/bln)</option>
                 <option value="satpam">Satpam (Rp100.000/bln)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Mode Pembayaran</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Mode Pembayaran</label>
               <select
                 value={form.payment_mode}
                 onChange={(e) => setForm({ ...form, payment_mode: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+                className="input-select"
               >
                 <option value="bulanan">Bulanan</option>
                 {form.fee_type === 'kebersihan' && <option value="tahunan">Tahunan (12 bulan)</option>}
@@ -176,13 +188,13 @@ export default function Payments() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 {form.payment_mode === 'tahunan' ? 'Bulan Mulai' : 'Bulan Periode'}
               </label>
               <select
                 value={form.period_month}
                 onChange={(e) => setForm({ ...form, period_month: Number(e.target.value) })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+                className="input-select"
               >
                 {MONTH_NAMES.map((name, i) => (
                   <option key={i} value={i + 1}>{name}</option>
@@ -190,45 +202,42 @@ export default function Payments() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Tahun</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Tahun</label>
               <input
                 type="number"
                 value={form.period_year}
                 onChange={(e) => setForm({ ...form, period_year: Number(e.target.value) })}
                 min={2000}
                 max={2100}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="input-field"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Tanggal Bayar</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Bayar</label>
             <input
               type="date"
               value={form.payment_date}
               onChange={(e) => setForm({ ...form, payment_date: e.target.value })}
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Catatan (opsional)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Catatan (opsional)</label>
             <input
               type="text"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="input-field"
+              placeholder="Tambahkan catatan..."
             />
           </div>
-          <div className="rounded-lg bg-slate-50 px-4 py-3 text-sm flex justify-between">
-            <span>Total ({monthCount} bulan)</span>
-            <span className="font-bold">{formatRupiah(totalAmount)}</span>
+          <div className="rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200 px-4 py-3 flex items-center justify-between">
+            <span className="text-sm text-slate-600">Total ({monthCount} bulan)</span>
+            <span className="text-base font-bold text-primary-700">{formatRupiah(totalAmount)}</span>
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition"
-          >
+          <button type="submit" disabled={saving} className="btn-primary w-full">
             {saving ? 'Menyimpan...' : 'Simpan Pembayaran'}
           </button>
         </form>
